@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniEventHub | Campus Event & Ticketing Portal</title>
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-brand" onclick="navigateTo('events-view')">
+      <div class="brand-logo">
+        <i class="fa-solid fa-graduation-cap"></i>
+      </div>
+      <div class="brand-text">
+        <span>UniEventHub</span>
+        <small>Campus Registration Portal</small>
+      </div>
+    </div>
+
+    <nav class="nav-menu">
+      <button class="nav-item active" id="nav-btn-events" onclick="navigateTo('events-view')">
+        <i class="fa-solid fa-compass"></i> Explore Events
+      </button>
+      <button class="nav-item" id="nav-btn-student" onclick="navigateTo('student-auth-view')">
+        <i class="fa-solid fa-user"></i> Student Portal
+      </button>
+      <button class="nav-item admin-pill" id="nav-btn-admin" onclick="handleAdminNavClick()">
+        <i class="fa-solid fa-shield-halved"></i> Admin Console
+      </button>
+      
+      <!-- User Profile Badge & Logout -->
+      <div id="user-badge" class="user-badge" style="display: none;">
+        <div class="avatar"><i class="fa-solid fa-circle-user"></i></div>
+        <div class="user-info">
+          <span id="badge-name">Student</span>
+          <small id="badge-role">Verified</small>
+        </div>
+        <button class="logout-btn" onclick="logoutSession()" title="Logout">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Notification Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Main View Container -->
+  <main class="main-container">
+
+    <!-- ==================== VIEW 1: EXPLORE EVENTS ==================== -->
+    <section id="events-view" class="app-view active">
+      <!-- Hero Section -->
+      <div class="hero-section">
+        <div class="hero-content">
+          <span class="hero-pill"><i class="fa-solid fa-sparkles"></i> Campus Life & Opportunities</span>
+          <h1>Discover, Register & Attend College Events</h1>
+          <p>Stay ahead of college workshops, tech fests, hackathons, and guest seminars. Reserve your seat instantly with integrated digital registration.</p>
+          
+          <div class="hero-search-bar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="event-search-input" placeholder="Search by event name, venue, or keywords..." oninput="handleSearchFilter()">
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls & Filter Tags -->
+      <div class="filter-bar">
+        <div class="category-tabs">
+          <button class="tab-chip active" onclick="filterCategory('All', this)">All Events</button>
+          <button class="tab-chip" onclick="filterCategory('Workshop', this)"><i class="fa-solid fa-laptop-code"></i> Workshops</button>
+          <button class="tab-chip" onclick="filterCategory('Fest', this)"><i class="fa-solid fa-masks-theater"></i> Fests</button>
+          <button class="tab-chip" onclick="filterCategory('Competition', this)"><i class="fa-solid fa-trophy"></i> Competitions</button>
+          <button class="tab-chip" onclick="filterCategory('Seminar', this)"><i class="fa-solid fa-chalkboard-user"></i> Seminars</button>
+        </div>
+        <div class="event-stats-summary" id="event-stats-count">
+          Showing all available events
+        </div>
+      </div>
+
+      <!-- Event Cards Grid -->
+      <div class="events-grid" id="events-grid-container">
+        <!-- Rendered dynamically by script.js -->
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 2: STUDENT AUTH ==================== -->
+    <section id="student-auth-view" class="app-view">
+      <div class="auth-wrapper">
+        <div class="auth-card">
+          <div class="auth-toggle">
+            <button class="toggle-btn active" id="auth-tab-login" onclick="switchAuthTab('login')">Student Sign In</button>
+            <button class="toggle-btn" id="auth-tab-register" onclick="switchAuthTab('register')">Create Account</button>
+          </div>
+
+          <!-- Student Login Form -->
+          <form id="form-student-login" onsubmit="handleStudentLogin(event)">
+            <div class="auth-header">
+              <h2>Welcome Back</h2>
+              <p>Sign in with your University Registration Number or Email</p>
+            </div>
+            
+            <div class="input-field">
+              <label><i class="fa-solid fa-id-card"></i> Reg. Number / Email</label>
+              <input type="text" id="login-identifier" placeholder="e.g. 12109845 or name@university.edu" required>
+            </div>
+
+            <div class="input-field">
+              <label><i class="fa-solid fa-lock"></i> Password</label>
+              <input type="password" id="login-password" placeholder="Enter your password" required>
+            </div>
+
+            <button type="submit" class="primary-btn full-width">
+              <span>Sign In to Dashboard</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </form>
+
+          <!-- Student Register Form -->
+          <form id="form-student-register" style="display: none;" onsubmit="handleStudentRegister(event)">
+            <div class="auth-header">
+              <h2>Student Registration</h2>
+              <p>Create your verified campus account to register for upcoming events</p>
+            </div>
+
+            <div class="input-grid">
+              <div class="input-field">
+                <label><i class="fa-solid fa-user"></i> Full Name</label>
+                <input type="text" id="reg-fullname" placeholder="e.g. Rohan Sharma" required>
+              </div>
+
+              <div class="input-field">
+                <label><i class="fa-solid fa-hashtag"></i> Registration No.</label>
+                <input type="text" id="reg-rollno" placeholder="e.g. 12108542" required>
+              </div>
+            </div>
+
+            <div class="input-grid">
+              <div class="input-field">
+                <label><i class="fa-solid fa-building-columns"></i> Branch / Department</label>
+                <input type="text" id="reg-department" placeholder="e.g. Computer Science & Engg." required>
+              </div>
+
+              <div class="input-field">
+                <label><i class="fa-solid fa-envelope"></i> Official Email</label>
+                <input type="email" id="reg-email" placeholder="student@university.edu" required>
+              </div>
+            </div>
+
+            <div class="input-field">
+              <label><i class="fa-solid fa-key"></i> Choose Password</label>
+              <input type="password" id="reg-password" placeholder="Create a strong password" required>
+            </div>
+
+            <button type="submit" class="primary-btn full-width">
+              <span>Complete Account Creation</span>
+              <i class="fa-solid fa-check"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 3: ADMIN AUTH ==================== -->
+    <section id="admin-auth-view" class="app-view">
+      <div class="auth-wrapper">
+        <div class="auth-card admin-auth-card">
+          <div class="admin-lock-icon">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div class="auth-header text-center">
+            <h2>Authorized Administrator Portal</h2>
+            <p>Protected area for campus authorities and event coordinators.</p>
+            <div class="credential-tip">
+              <strong>Demo Credentials:</strong> ID: <code>admin</code> | Password: <code>admin123</code>
+            </div>
+          </div>
+
+          <form onsubmit="handleAdminLogin(event)">
+            <div class="input-field">
+              <label><i class="fa-solid fa-user-shield"></i> Administrator ID</label>
+              <input type="text" id="admin-user" placeholder="admin" required>
+            </div>
+
+            <div class="input-field">
+              <label><i class="fa-solid fa-fingerprint"></i> Security Password</label>
+              <input type="password" id="admin-pass" placeholder="admin123" required>
+            </div>
+
+            <button type="submit" class="primary-btn admin-theme-btn full-width">
+              <span>Authenticate & Enter Console</span>
+              <i class="fa-solid fa-key"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 4: ADMIN DASHBOARD ==================== -->
+    <section id="admin-dashboard-view" class="app-view">
+      <div class="dashboard-head">
+        <div>
+          <h2>Event Command Center</h2>
+          <p>Real-time analytics, event scheduling, and student registration ledgers.</p>
+        </div>
+      </div>
+
+      <!-- KPI Stat Widgets -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon blue"><i class="fa-regular fa-calendar-check"></i></div>
+          <div class="kpi-details">
+            <span class="kpi-label">Active Events</span>
+            <h3 id="kpi-active-events">0</h3>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon green"><i class="fa-solid fa-users-viewfinder"></i></div>
+          <div class="kpi-details">
+            <span class="kpi-label">Total Student Bookings</span>
+            <h3 id="kpi-total-registrations">0</h3>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon amber"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+          <div class="kpi-details">
+            <span class="kpi-label">Total Fees Collected</span>
+            <h3 id="kpi-total-revenue">₹0</h3>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon purple"><i class="fa-solid fa-chart-pie"></i></div>
+          <div class="kpi-details">
+            <span class="kpi-label">Overall Occupancy Rate</span>
+            <h3 id="kpi-occupancy-rate">0%</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Event Card Form -->
+      <div class="admin-panel-card">
+        <div class="panel-card-header">
+          <h3><i class="fa-solid fa-calendar-plus"></i> Create & Publish New Campus Event</h3>
+          <small>Events published here will immediately appear in the student portal.</small>
+        </div>
+
+        <form id="form-create-event" onsubmit="handleCreateEvent(event)">
+          <div class="form-grid-3">
+            <div class="input-field">
+              <label>Event Name / Title</label>
+              <input type="text" id="evt-title" placeholder="e.g. Inter-University Coding Hackathon" required>
+            </div>
+
+            <div class="input-field">
+              <label>Category</label>
+              <select id="evt-category">
+                <option value="Workshop">Technical Workshop</option>
+                <option value="Fest">Cultural / Tech Fest</option>
+                <option value="Competition">Competition & Contest</option>
+                <option value="Seminar">Guest Lecture & Seminar</option>
+              </select>
+            </div>
+
+            <div class="input-field">
+              <label>Date & Time</label>
+              <input type="datetime-local" id="evt-datetime" required>
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="input-field">
+              <label>Venue / Location</label>
+              <input type="text" id="evt-venue" placeholder="e.g. Block 32 Auditorium / Lab 3" required>
+            </div>
+
+            <div class="input-field">
+              <label>Total Seat Limit (Capacity)</label>
+              <input type="number" id="evt-seats" min="1" placeholder="e.g. 100" required>
+            </div>
+
+            <div class="input-field">
+              <label>Registration Fee (₹) [0 for Free]</label>
+              <input type="number" id="evt-fee" min="0" value="0" required>
+            </div>
+          </div>
+
+          <div class="input-field">
+            <label>Eligibility & Description</label>
+            <textarea id="evt-description" rows="2" placeholder="Eligibility guidelines, equipment requirements, student prerequisites..." required></textarea>
+          </div>
+
+          <button type="submit" class="primary-btn">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Publish Event to Portal
+          </button>
+        </form>
+      </div>
+
+      <!-- Student Registration Ledger Table -->
+      <div class="admin-panel-card">
+        <div class="panel-card-header flex-between">
+          <div>
+            <h3><i class="fa-solid fa-list-check"></i> Student Registration Ledger</h3>
+            <small>All registration records and payment details are synced to the admin profile.</small>
+          </div>
+          <div class="table-search">
+            <input type="text" id="ledger-search" placeholder="Filter ledger by Reg No, Name..." oninput="handleLedgerSearch()">
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Registration No.</th>
+                <th>Student Name</th>
+                <th>Branch</th>
+                <th>Event Registered</th>
+                <th>Payment Mode</th>
+                <th>Transaction / Ref ID</th>
+                <th>Date & Time</th>
+              </tr>
+            </thead>
+            <tbody id="admin-ledger-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== REGISTRATION & PAYMENT MODAL ==================== -->
+  <div class="modal-overlay" id="checkout-modal">
+    <div class="modal-dialog">
+      <button class="modal-close" onclick="closeCheckoutModal()"><i class="fa-solid fa-xmark"></i></button>
+
+      <!-- Step 1: Payment & Confirmation Form -->
+      <div id="modal-step-checkout">
+        <div class="modal-header">
+          <h2>Event Registration Checkout</h2>
+          <p>Confirm your attendance and complete payment verification.</p>
+        </div>
+
+        <!-- Event Summary Preview Card -->
+        <div class="event-checkout-summary" id="checkout-summary-box">
+          <!-- Injected dynamically -->
+        </div>
+
+        <!-- Payment Gateway Block -->
+        <div id="payment-gateway-container">
+          <label class="section-subtitle">Select Payment Gateway</label>
+
+          <div class="payment-tabs">
+            <button type="button" class="pay-tab active" id="tab-pay-upi" onclick="selectPaymentMethod('UPI')">
+              <i class="fa-solid fa-qrcode"></i>
+              <span>UPI / Paytm / GPay</span>
+            </button>
+            <button type="button" class="pay-tab" id="tab-pay-card" onclick="selectPaymentMethod('Card')">
+              <i class="fa-regular fa-credit-card"></i>
+              <span>Debit / ATM Card</span>
+            </button>
+          </div>
+
+          <!-- UPI Section -->
+          <div id="pay-content-upi" class="payment-method-body">
+            <div class="upi-instructions">
+              <div class="mock-qr">
+                <i class="fa-solid fa-qrcode"></i>
+                <small>Scan to pay with any UPI App</small>
+              </div>
+              <div class="upi-form">
+                <div class="input-field">
+                  <label>Virtual Payment Address (VPA / UPI ID)</label>
+                  <input type="text" id="input-upi-vpa" placeholder="e.g. 9876543210@paytm or student@okaxis">
+                </div>
+                <div class="quick-tags">
+                  <span onclick="setDemoVpa('@paytm')">@paytm</span>
+                  <span onclick="setDemoVpa('@okhdfcbank')">@okhdfcbank</span>
+                  <span onclick="setDemoVpa('@okicici')">@okicici</span>
+                  <span onclick="setDemoVpa('@ybl')">@ybl</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Debit Card Section -->
+          <div id="pay-content-card" class="payment-method-body" style="display: none;">
+            <div class="card-simulator">
+              <div class="card-visual">
+                <div class="card-chip"></div>
+                <div class="card-number-preview" id="preview-card-no">•••• •••• •••• ••••</div>
+                <div class="card-bottom">
+                  <div>
+                    <small>CARD HOLDER</small>
+                    <span id="preview-card-name">STUDENT NAME</span>
+                  </div>
+                  <div>
+                    <small>EXPIRES</small>
+                    <span id="preview-card-exp">MM/YY</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card-inputs">
+                <div class="input-field">
+                  <label>Debit Card Number</label>
+                  <input type="text" id="input-card-number" maxlength="19" placeholder="4532 8900 1234 5678" oninput="formatCardNumber(this)">
+                </div>
+                <div class="input-grid">
+                  <div class="input-field">
+                    <label>Valid Thru (MM/YY)</label>
+                    <input type="text" id="input-card-exp" maxlength="5" placeholder="12/28" oninput="formatCardExpiry(this)">
+                  </div>
+                  <div class="input-field">
+                    <label>CVV (3 Digits)</label>
+                    <input type="password" id="input-card-cvv" maxlength="3" placeholder="•••">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="primary-btn full-width confirm-pay-btn" onclick="processEventRegistration()">
+          <i class="fa-solid fa-lock"></i>
+          <span id="checkout-btn-text">Confirm Registration & Pay</span>
+        </button>
+      </div>
+
+      <!-- Step 2: Digital Admission Pass Slip -->
+      <div id="modal-step-ticket" style="display: none;">
+        <div class="ticket-wrapper" id="printable-ticket-area">
+          <div class="ticket-pass">
+            <div class="ticket-top">
+              <div class="ticket-brand">
+                <i class="fa-solid fa-graduation-cap"></i> UniEventHub Pass
+              </div>
+              <span class="verified-tag"><i class="fa-solid fa-circle-check"></i> Admission Confirmed</span>
+            </div>
+
+            <div class="ticket-body">
+              <h2 id="tkt-event-title">Hackathon 2026</h2>
+              
+              <div class="ticket-details-grid">
+                <div>
+                  <small>ATTENDEE</small>
+                  <strong id="tkt-student-name">Student Name</strong>
+                  <span id="tkt-student-roll">12108945</span>
+                </div>
+                <div>
+                  <small>DEPARTMENT</small>
+                  <strong id="tkt-student-dept">Computer Science</strong>
+                </div>
+                <div>
+                  <small>DATE & TIME</small>
+                  <strong id="tkt-event-datetime">Nov 20, 2026</strong>
+                </div>
+                <div>
+                  <small>VENUE</small>
+                  <strong id="tkt-event-venue">Main Auditorium</strong>
+                </div>
+              </div>
+
+              <div class="ticket-divider">
+                <div class="notch left"></div>
+                <div class="dashed-line"></div>
+                <div class="notch right"></div>
+              </div>
+
+              <div class="ticket-footer">
+                <div>
+                  <small>TRANSACTION ID</small>
+                  <code id="tkt-txnid">TXN849302</code>
+                  <div class="payment-method-pill" id="tkt-paymethod">Online UPI</div>
+                </div>
+                <div class="ticket-qr-block">
+                  <i class="fa-solid fa-qrcode"></i>
+                  <small>Scan at Entrance</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ticket-actions no-print">
+          <button type="button" class="primary-btn" onclick="window.print()">
+            <i class="fa-solid fa-print"></i> Print Admission Slip
+          </button>
+          <button type="button" class="secondary-btn" onclick="closeCheckoutModal()">
+            <i class="fa-solid fa-check"></i> Done
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
